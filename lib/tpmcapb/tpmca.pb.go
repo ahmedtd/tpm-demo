@@ -152,15 +152,30 @@ func (x *ExchangeEKForCertRequest) GetAttestationKeyCreateSignature() []byte {
 	return nil
 }
 
+// See "Trusted Platform Module 2.0 Library Part 1: Architecture" section 22.
 type ExchangeEKForCertResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Not totally sure what this is yet.
+	// A TPM credential that allows the EK to decrypt the challenge.
 	Credential []byte `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
-	// An AES-256 key that can unseal sealed_credential.  The key is itself
-	// sealed and can only be decrypted using the endorsement key in the TPM.
-	SealedUnsealingKey []byte `protobuf:"bytes,2,opt,name=sealed_unsealing_key,json=sealedUnsealingKey,proto3" json:"sealed_unsealing_key,omitempty"`
-	// A SealedCertificate message, serialized and sealed using an AEAD.
-	SealedCertificate      []byte `protobuf:"bytes,3,opt,name=sealed_certificate,json=sealedCertificate,proto3" json:"sealed_certificate,omitempty"`
+	// A challenge that can be decrypted by the EK.
+	//
+	// Once decrypted, this field contains a 32-byte AES-256 key that can be
+	// used to unseal the sealed_certificate field.
+	//
+	// Note: The "challenge" terminology comes from the TPM spec, and I
+	// personally find it somewhat confusing.  It can be any value, and does not
+	// need to be returned to the server.  In theory, we do not need the
+	// two-step wrapping with the "sealed_certificate" field, and we could
+	// instead cram the sealed_certificate info into the challenge field.
+	//
+	// I think it may be better to maintain the two-step wrapping, though, since
+	// I think the whole "challenge" field needs to be streamed through the TPM.
+	// It's probably better to decrypt the large message on the CPU.
+	Challenge []byte `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
+	// A SealedCertificate message, serialized and sealed using an AES-256 GCM
+	// AEAD.  The key is the unencrypted contents of the "challenge" field.
+	SealedCertificate []byte `protobuf:"bytes,3,opt,name=sealed_certificate,json=sealedCertificate,proto3" json:"sealed_certificate,omitempty"`
+	// The AES-256 GCM AEAD nonce for the sealed_certificate field.
 	SealedCertificateNonce []byte `protobuf:"bytes,4,opt,name=sealed_certificate_nonce,json=sealedCertificateNonce,proto3" json:"sealed_certificate_nonce,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
@@ -203,9 +218,9 @@ func (x *ExchangeEKForCertResponse) GetCredential() []byte {
 	return nil
 }
 
-func (x *ExchangeEKForCertResponse) GetSealedUnsealingKey() []byte {
+func (x *ExchangeEKForCertResponse) GetChallenge() []byte {
 	if x != nil {
-		return x.SealedUnsealingKey
+		return x.Challenge
 	}
 	return nil
 }
@@ -293,12 +308,12 @@ const file_tpmca_proto_rawDesc = "" +
 	"\x16attestation_public_key\x18\x03 \x01(\fR\x14attestationPublicKey\x12=\n" +
 	"\x1battestation_key_create_data\x18\x04 \x01(\fR\x18attestationKeyCreateData\x12K\n" +
 	"\"attestation_key_create_attestation\x18\x05 \x01(\fR\x1fattestationKeyCreateAttestation\x12G\n" +
-	" attestation_key_create_signature\x18\x06 \x01(\fR\x1dattestationKeyCreateSignature\"\xd6\x01\n" +
+	" attestation_key_create_signature\x18\x06 \x01(\fR\x1dattestationKeyCreateSignature\"\xc2\x01\n" +
 	"\x19ExchangeEKForCertResponse\x12\x1e\n" +
 	"\n" +
 	"credential\x18\x01 \x01(\fR\n" +
-	"credential\x120\n" +
-	"\x14sealed_unsealing_key\x18\x02 \x01(\fR\x12sealedUnsealingKey\x12-\n" +
+	"credential\x12\x1c\n" +
+	"\tchallenge\x18\x02 \x01(\fR\tchallenge\x12-\n" +
 	"\x12sealed_certificate\x18\x03 \x01(\fR\x11sealedCertificate\x128\n" +
 	"\x18sealed_certificate_nonce\x18\x04 \x01(\fR\x16sealedCertificateNonce\"\x86\x01\n" +
 	"\x11SealedCertificate\x12+\n" +

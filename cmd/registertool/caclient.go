@@ -139,8 +139,8 @@ func (c *CAClientCommand) executeErr(ctx context.Context) error {
 	// use the TPM to unseal the certificate.
 
 	unsealedSealingKey, err := ak.ActivateCredential(tpm, attest.EncryptedCredential{
-		Credential: exchangeResp.Credential,
-		Secret:     exchangeResp.SealedUnsealingKey,
+		Credential: exchangeResp.GetCredential(),
+		Secret:     exchangeResp.GetChallenge(),
 	})
 	if err != nil {
 		return fmt.Errorf("while unsealing secret: %w", err)

@@ -255,6 +255,11 @@ func (s *TPMCAService) ExchangeEKForCert(ctx context.Context, req *tpmcapb.Excha
 		AK:         attestParams,
 	}
 
+	// Note, we are deviating from the examples in the go-attestation library,
+	// in order to implement a one-step flow.  Instead of using "secret" in a
+	// two-step challenge-response protocol with the CA server, we instead use
+	// "secret" as an AES-256 key to seal the certificate we issued.
+
 	certificateSealingKey, encryptedCredentials, err := params.Generate()
 	if err != nil {
 		return nil, fmt.Errorf("while generating credential activation challenge: %w", err)
@@ -267,7 +272,7 @@ func (s *TPMCAService) ExchangeEKForCert(ctx context.Context, req *tpmcapb.Excha
 
 	return &tpmcapb.ExchangeEKForCertResponse{
 		Credential:             encryptedCredentials.Credential,
-		SealedUnsealingKey:     encryptedCredentials.Secret,
+		Challenge:              encryptedCredentials.Secret,
 		SealedCertificate:      sealedCertificate,
 		SealedCertificateNonce: sealedCertificateNonce,
 	}, nil

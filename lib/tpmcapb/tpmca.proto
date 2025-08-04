@@ -22,16 +22,35 @@ message ExchangeEKForCertRequest {
     bytes attestation_key_create_signature = 6;
 }
 
+// See "Trusted Platform Module 2.0 Library Part 1: Architecture" section 22.
 message ExchangeEKForCertResponse {
-    // Not totally sure what this is yet.
+    // A TPM credential that allows the EK to decrypt the challenge.
     bytes credential = 1;
 
-    // An AES-256 key that can unseal sealed_credential.  The key is itself
-    // sealed and can only be decrypted using the endorsement key in the TPM.
-    bytes sealed_unsealing_key = 2;
+    // Note, this multi-step wrapping is non-optimal.  If we read through
+    // section 22, we are currently interpreting the word "challenge" literally
 
-    // A SealedCertificate message, serialized and sealed using an AEAD.
+    // A challenge that can be decrypted by the EK.
+    //
+    // Once decrypted, this field contains a 32-byte AES-256 key that can be
+    // used to unseal the sealed_certificate field.
+    //
+    // Note: The "challenge" terminology comes from the TPM spec, and I
+    // personally find it somewhat confusing.  It can be any value, and does not
+    // need to be returned to the server.  In theory, we do not need the
+    // two-step wrapping with the "sealed_certificate" field, and we could
+    // instead cram the sealed_certificate info into the challenge field.
+    //
+    // I think it may be better to maintain the two-step wrapping, though, since
+    // I think the whole "challenge" field needs to be streamed through the TPM.
+    // It's probably better to decrypt the large message on the CPU.
+    bytes challenge = 2;
+
+    // A SealedCertificate message, serialized and sealed using an AES-256 GCM
+    // AEAD.  The key is the unencrypted contents of the "challenge" field.
     bytes sealed_certificate = 3;
+
+    // The AES-256 GCM AEAD nonce for the sealed_certificate field.
     bytes sealed_certificate_nonce = 4;
 }
 
