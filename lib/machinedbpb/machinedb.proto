@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option go_package = "github.com/ahmedtd/tpm-demo/lib/machinedbpb";
+
+message MachineList {
+    repeated Machine machines = 1;
+}
+
+message Machine {
+    bytes endorsement_public_key_pkix = 1;
+    string node_name = 2;
+}

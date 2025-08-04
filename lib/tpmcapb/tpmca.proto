@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option go_package = "github.com/ahmedtd/tpm-demo/lib/tpmcapb";
+
+import "google/protobuf/timestamp.proto";
+
+service CertificateAuthority {
+    rpc ExchangeEKForCert(ExchangeEKForCertRequest) returns (ExchangeEKForCertResponse) {}
+}
+
+enum TPMVersion {
+    V1_2 = 0;
+    V2_0 = 1;
+}
+
+message ExchangeEKForCertRequest {
+    TPMVersion tpm_version = 1;
+    bytes endorsement_public_key = 2;
+    bytes attestation_public_key = 3;
+    bytes attestation_key_create_data = 4;
+    bytes attestation_key_create_attestation = 5;
+    bytes attestation_key_create_signature = 6;
+}
+
+message ExchangeEKForCertResponse {
+    // Not totally sure what this is yet.
+    bytes credential = 1;
+
+    // An AES-256 key that can unseal sealed_credential.  The key is itself
+    // sealed and can only be decrypted using the endorsement key in the TPM.
+    bytes sealed_unsealing_key = 2;
+
+    // A SealedCertificate message, serialized and sealed using an AEAD.
+    bytes sealed_certificate = 3;
+    bytes sealed_certificate_nonce = 4;
+}
+
+message SealedCertificate {
+    // A certificate issued to the attestation key, that can be used to
+    // authenticate to relying parties.
+    //
+    // Serialized to DER, no PEM wrapping.
+    repeated bytes certificate_chain = 1;
+
+    // When should the client begin refreshing their certificate?
+    google.protobuf.Timestamp begin_refresh_at = 2;
+}
