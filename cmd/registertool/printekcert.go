@@ -54,7 +54,8 @@ func (c *PrintEKCertCommand) executeErr(ctx context.Context) error {
 	log.Printf("Found %d endorsement certificates", len(endorsementCerts))
 
 	for _, ec := range endorsementCerts {
-		fmt.Println(pem.EncodeToMemory(&pem.Block{
+		fmt.Printf("URL: %v", ec.CertificateURL)
+		fmt.Printf("Certificate:\n%s", pem.EncodeToMemory(&pem.Block{
 			Type:  "CERTIFICATE",
 			Bytes: ec.Certificate.Raw,
 		}))

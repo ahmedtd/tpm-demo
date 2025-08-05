@@ -47,6 +47,8 @@ func (c *PrintEKCommand) executeErr(ctx context.Context) error {
 		return fmt.Errorf("while opening TPM: %w", err)
 	}
 
+	log.Printf("Version: %v", tpm.Version())
+
 	eks, err := tpm.EKs()
 	if err != nil {
 		return fmt.Errorf("while getting endorsement keys: %w", err)
