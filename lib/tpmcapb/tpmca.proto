@@ -41,9 +41,6 @@ message ExchangeEKForCertResponse {
     // A TPM credential that allows the EK to decrypt the challenge.
     bytes credential = 1;
 
-    // Note, this multi-step wrapping is non-optimal.  If we read through
-    // section 22, we are currently interpreting the word "challenge" literally
-
     // A challenge that can be decrypted by the EK.
     //
     // Once decrypted, this field contains a 32-byte AES-256 key that can be
