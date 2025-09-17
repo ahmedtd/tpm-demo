@@ -29,6 +29,7 @@ enum TPMVersion {
 
 message ExchangeEKForCertRequest {
     TPMVersion tpm_version = 1;
+    bytes endorsement_certificate = 7;
     bytes endorsement_public_key = 2;
     bytes attestation_public_key = 3;
     bytes attestation_key_create_data = 4;
