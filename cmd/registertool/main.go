@@ -29,6 +29,7 @@ func main() {
 
 	subcommands.Register(&CAClientCommand{}, "")
 	subcommands.Register(&CAServerCommand{}, "")
+	subcommands.Register(&GCECAServerCommand{}, "")
 	subcommands.Register(&GenCACommand{}, "")
 	subcommands.Register(&PrintEKCommand{}, "")
 	subcommands.Register(&PrintEKCertCommand{}, "")
